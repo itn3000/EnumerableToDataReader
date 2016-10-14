@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3719D89F-34A3-449C-8618-A7F538484B69}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{25CED576-7911-4E64-86AF-1B3EC09C4EA8}"
+	ProjectSection(SolutionItems) = preProject
+		global.json = global.json
+	EndProjectSection
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "EnumerableToDataReader", "src\EnumerableToDataReader\EnumerableToDataReader.xproj", "{1E3FFAAF-AA02-48B4-9FDE-ABF88D76C87F}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "EnumerableToDataReader.Test", "src\EnumerableToDataReader.Test\EnumerableToDataReader.Test.xproj", "{9C93A329-751C-43A7-B3D9-B03F93B3AF09}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1E3FFAAF-AA02-48B4-9FDE-ABF88D76C87F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E3FFAAF-AA02-48B4-9FDE-ABF88D76C87F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E3FFAAF-AA02-48B4-9FDE-ABF88D76C87F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E3FFAAF-AA02-48B4-9FDE-ABF88D76C87F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C93A329-751C-43A7-B3D9-B03F93B3AF09}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C93A329-751C-43A7-B3D9-B03F93B3AF09}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C93A329-751C-43A7-B3D9-B03F93B3AF09}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C93A329-751C-43A7-B3D9-B03F93B3AF09}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{1E3FFAAF-AA02-48B4-9FDE-ABF88D76C87F} = {3719D89F-34A3-449C-8618-A7F538484B69}
+		{9C93A329-751C-43A7-B3D9-B03F93B3AF09} = {3719D89F-34A3-449C-8618-A7F538484B69}
+	EndGlobalSection
+EndGlobal
