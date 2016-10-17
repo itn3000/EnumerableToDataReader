@@ -30,85 +30,118 @@ namespace EnumerableToDataReader
         public Dictionary<int, string> IndexNameMapping { get; private set; }
         public Dictionary<string, int> NameIndexMapping { get; private set; }
         public int FieldNum { get; private set; }
-        Func<object, T1> GetObjectFunction<T1>(Type t, PropertyInfo pi)
+        Func<object, T1> GetObjectFunction<T1>(Type t, MemberInfo pi)
         {
             var lambdaParam = Expression.Parameter(typeof(object), "x");
             return Expression.Lambda<Func<object, T1>>(Expression.Convert(Expression.MakeMemberAccess(Expression.Convert(lambdaParam, t), pi), typeof(T1)), lambdaParam).Compile();
         }
+        void AddPropertyMap(Type t, int i, Type propertyType, MemberInfo pi)
+        {
+            MemberTypeMapping[pi.Name] = propertyType;
+            ObjectGetters[i] = GetObjectFunction<object>(t, pi);
+            if (propertyType == typeof(long) || propertyType == typeof(long?))
+            {
+                LongGetters[i] = GetObjectFunction<long>(t, pi);
+                DecimalGetters[i] = GetObjectFunction<decimal>(t, pi);
+            }
+            else if (propertyType == typeof(int) || propertyType == typeof(int?))
+            {
+                IntGetters[i] = GetObjectFunction<int>(t, pi);
+                LongGetters[i] = GetObjectFunction<long>(t, pi);
+                DecimalGetters[i] = GetObjectFunction<decimal>(t, pi);
+            }
+            else if (propertyType == typeof(short) || propertyType == typeof(short?))
+            {
+                ShortGetters[i] = GetObjectFunction<short>(t, pi);
+                IntGetters[i] = GetObjectFunction<int>(t, pi);
+                LongGetters[i] = GetObjectFunction<long>(t, pi);
+                DecimalGetters[i] = GetObjectFunction<decimal>(t, pi);
+            }
+            else if (propertyType == typeof(byte) || propertyType == typeof(byte?))
+            {
+                ByteGetters[i] = GetObjectFunction<byte>(t, pi);
+                ShortGetters[i] = GetObjectFunction<short>(t, pi);
+                IntGetters[i] = GetObjectFunction<int>(t, pi);
+                LongGetters[i] = GetObjectFunction<long>(t, pi);
+                DecimalGetters[i] = GetObjectFunction<decimal>(t, pi);
+            }
+            else if (propertyType == typeof(decimal) || propertyType == typeof(decimal?))
+            {
+                ShortGetters[i] = GetObjectFunction<short>(t, pi);
+                IntGetters[i] = GetObjectFunction<int>(t, pi);
+                LongGetters[i] = GetObjectFunction<long>(t, pi);
+                DoubleGetters[i] = GetObjectFunction<double>(t, pi);
+                FloatGetters[i] = GetObjectFunction<float>(t, pi);
+                DecimalGetters[i] = GetObjectFunction<decimal>(t, pi);
+            }
+            else if (propertyType == typeof(char) || propertyType == typeof(char?))
+            {
+                CharGetters[i] = GetObjectFunction<char>(t, pi);
+            }
+            else if (propertyType == typeof(bool) || propertyType == typeof(bool?))
+            {
+                BoolGetters[i] = GetObjectFunction<bool>(t, pi);
+            }
+            else if (propertyType == typeof(DateTime) || propertyType == typeof(DateTime?))
+            {
+                DateGetters[i] = GetObjectFunction<DateTime>(t, pi);
+            }
+            else if (propertyType == typeof(double) || propertyType == typeof(double?))
+            {
+                DoubleGetters[i] = GetObjectFunction<double>(t, pi);
+            }
+            else if (propertyType == typeof(float) || propertyType == typeof(float?))
+            {
+                DoubleGetters[i] = GetObjectFunction<double>(t, pi);
+                FloatGetters[i] = GetObjectFunction<float>(t, pi);
+            }
+            else if (propertyType == typeof(Guid) || propertyType == typeof(Guid?))
+            {
+                GuidGetters[i] = GetObjectFunction<Guid>(t, pi);
+            }
+        }
         void InitializeMapFromType(Type t)
         {
             var ti = t.GetTypeInfo();
-            var properties = ti.GetProperties();
-            FieldNum = properties.Length;
-            IndexNameMapping = properties.Select((x, i) => new { i, x.Name }).ToDictionary(x => x.i, x => x.Name);
-            NameIndexMapping = IndexNameMapping.Select(kv => kv).ToDictionary(kv => kv.Value, kv => kv.Key);
+            var properties = ti.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(x => x.CanRead && (x.GetCustomAttribute<IgnoreFieldAttribute>() == null)).ToArray();
+            var fields = ti.GetFields(BindingFlags.Public | BindingFlags.Instance).Where(x => x.GetCustomAttribute<IgnoreFieldAttribute>() == null).ToArray();
+            FieldNum = properties.Length + fields.Length;
+            IndexNameMapping = new Dictionary<int, string>();
+            NameIndexMapping = new Dictionary<string, int>();
             MemberTypeMapping = new Dictionary<string, Type>();
             ObjectGetters = new Dictionary<int, Func<object, object>>();
             for (int i = 0; i < properties.Length; i++)
             {
                 var pi = properties[i];
-                MemberTypeMapping[pi.Name] = pi.PropertyType;
-                ObjectGetters[i] = GetObjectFunction<object>(t, pi);
-                if (pi.PropertyType == typeof(long) || pi.PropertyType == typeof(long?))
+                var customName = pi.GetCustomAttribute<FieldNameAsAttribute>();
+                if (customName != null)
                 {
-                    LongGetters[i] = GetObjectFunction<long>(t, pi);
-                    DecimalGetters[i] = GetObjectFunction<decimal>(t, pi);
+                    NameIndexMapping[customName.Name] = i;
+                    IndexNameMapping[i] = customName.Name;
                 }
-                else if (pi.PropertyType == typeof(int) || pi.PropertyType == typeof(int?))
+                else
                 {
-                    IntGetters[i] = GetObjectFunction<int>(t, pi);
-                    LongGetters[i] = GetObjectFunction<long>(t, pi);
-                    DecimalGetters[i] = GetObjectFunction<decimal>(t, pi);
+                    NameIndexMapping[pi.Name] = i;
+                    IndexNameMapping[i] = pi.Name;
                 }
-                else if (pi.PropertyType == typeof(short) || pi.PropertyType == typeof(short?))
+                AddPropertyMap(t, i, pi.PropertyType, pi);
+            }
+            for (int i = 0; i < fields.Length; i++)
+            {
+                var fi = fields[i];
+                var idx = i + properties.Length;
+                var customName = fi.GetCustomAttribute<FieldNameAsAttribute>();
+                if (customName != null)
                 {
-                    ShortGetters[i] = GetObjectFunction<short>(t, pi);
-                    IntGetters[i] = GetObjectFunction<int>(t, pi);
-                    LongGetters[i] = GetObjectFunction<long>(t, pi);
-                    DecimalGetters[i] = GetObjectFunction<decimal>(t, pi);
+                    NameIndexMapping[customName.Name] = idx;
+                    IndexNameMapping[idx] = customName.Name;
                 }
-                else if (pi.PropertyType == typeof(byte) || pi.PropertyType == typeof(byte?))
+                else
                 {
-                    ByteGetters[i] = GetObjectFunction<byte>(t, pi);
-                    ShortGetters[i] = GetObjectFunction<short>(t, pi);
-                    IntGetters[i] = GetObjectFunction<int>(t, pi);
-                    LongGetters[i] = GetObjectFunction<long>(t, pi);
-                    DecimalGetters[i] = GetObjectFunction<decimal>(t, pi);
+                    NameIndexMapping[fi.Name] = idx;
+                    IndexNameMapping[idx] = fi.Name;
                 }
-                else if (pi.PropertyType == typeof(decimal) || pi.PropertyType == typeof(decimal?))
-                {
-                    ShortGetters[i] = GetObjectFunction<short>(t, pi);
-                    IntGetters[i] = GetObjectFunction<int>(t, pi);
-                    LongGetters[i] = GetObjectFunction<long>(t, pi);
-                    DoubleGetters[i] = GetObjectFunction<double>(t, pi);
-                    FloatGetters[i] = GetObjectFunction<float>(t, pi);
-                    DecimalGetters[i] = GetObjectFunction<decimal>(t, pi);
-                }
-                else if (pi.PropertyType == typeof(char) || pi.PropertyType == typeof(char?))
-                {
-                    CharGetters[i] = GetObjectFunction<char>(t, pi);
-                }
-                else if (pi.PropertyType == typeof(bool) || pi.PropertyType == typeof(bool?))
-                {
-                    BoolGetters[i] = GetObjectFunction<bool>(t, pi);
-                }
-                else if (pi.PropertyType == typeof(DateTime) || pi.PropertyType == typeof(DateTime?))
-                {
-                    DateGetters[i] = GetObjectFunction<DateTime>(t, pi);
-                }
-                else if (pi.PropertyType == typeof(double) || pi.PropertyType == typeof(double?))
-                {
-                    DoubleGetters[i] = GetObjectFunction<double>(t, pi);
-                }
-                else if (pi.PropertyType == typeof(float) || pi.PropertyType == typeof(float?))
-                {
-                    DoubleGetters[i] = GetObjectFunction<double>(t, pi);
-                    FloatGetters[i] = GetObjectFunction<float>(t, pi);
-                }
-                else if (pi.PropertyType == typeof(Guid) || pi.PropertyType == typeof(Guid?))
-                {
-                    GuidGetters[i] = GetObjectFunction<Guid>(t, pi);
-                }
+                AddPropertyMap(t, idx, fi.FieldType, fi);
             }
         }
     }

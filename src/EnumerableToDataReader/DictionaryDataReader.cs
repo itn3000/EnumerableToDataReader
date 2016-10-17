@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 
 namespace EnumerableToDataReader
 {
+    using System.Collections;
     using System.Data;
-    class DictionaryDataReader : IDataReader
+    using System.Data.Common;
+    class DictionaryDataReader : DbDataReader
     {
         IEnumerable<IDictionary<string, object>> m_Dictionary;
         IEnumerator<IDictionary<string, object>> m_Iterator;
@@ -29,7 +31,7 @@ namespace EnumerableToDataReader
             }
             m_Dictionary = dic;
         }
-        public object this[string name]
+        public override object this[string name]
         {
             get
             {
@@ -37,7 +39,7 @@ namespace EnumerableToDataReader
             }
         }
 
-        public object this[int i]
+        public override object this[int i]
         {
             get
             {
@@ -45,7 +47,7 @@ namespace EnumerableToDataReader
             }
         }
 
-        public int Depth
+        public override int Depth
         {
             get
             {
@@ -53,7 +55,7 @@ namespace EnumerableToDataReader
             }
         }
 
-        public int FieldCount
+        public override int FieldCount
         {
             get
             {
@@ -61,7 +63,7 @@ namespace EnumerableToDataReader
             }
         }
 
-        public bool IsClosed
+        public override bool IsClosed
         {
             get
             {
@@ -69,7 +71,7 @@ namespace EnumerableToDataReader
             }
         }
 
-        public int RecordsAffected
+        public override int RecordsAffected
         {
             get
             {
@@ -77,7 +79,15 @@ namespace EnumerableToDataReader
             }
         }
 
-        public void Close()
+        public override bool HasRows
+        {
+            get
+            {
+                return true;
+            }
+        }
+#if NET45
+        public override void Close()
         {
             if (m_Iterator != null)
             {
@@ -86,23 +96,32 @@ namespace EnumerableToDataReader
                 m_Iterator = null;
             }
         }
+#else
+        void Close()
+        {
+            m_Current = null;
+            m_Iterator.Dispose();
+            m_Iterator = null;
+        }
+#endif
 
-        public void Dispose()
+        public new void Dispose()
         {
             Close();
+            base.Dispose();
         }
 
-        public bool GetBoolean(int i)
+        public override bool GetBoolean(int i)
         {
             return (bool)m_Current[m_IndexToNameMapping[i]];
         }
 
-        public byte GetByte(int i)
+        public override byte GetByte(int i)
         {
             return (byte)m_Current[m_IndexToNameMapping[i]];
         }
 
-        public long GetBytes(int i, long fieldOffset, byte[] buffer, int bufferoffset, int length)
+        public override long GetBytes(int i, long fieldOffset, byte[] buffer, int bufferoffset, int length)
         {
             var data = m_Current[m_IndexToNameMapping[i]] as IEnumerable<byte>;
             long count = 0;
@@ -114,12 +133,12 @@ namespace EnumerableToDataReader
             return count;
         }
 
-        public char GetChar(int i)
+        public override char GetChar(int i)
         {
             return (char)m_Current[m_IndexToNameMapping[i]];
         }
 
-        public long GetChars(int i, long fieldoffset, char[] buffer, int bufferoffset, int length)
+        public override long GetChars(int i, long fieldoffset, char[] buffer, int bufferoffset, int length)
         {
             var data = m_Current[m_IndexToNameMapping[i]] as IEnumerable<char>;
             long count = 0;
@@ -131,87 +150,83 @@ namespace EnumerableToDataReader
             return count;
         }
 
-        public IDataReader GetData(int i)
-        {
-            throw new NotImplementedException();
-        }
-
-        public string GetDataTypeName(int i)
+        public override string GetDataTypeName(int i)
         {
             return m_Current[m_IndexToNameMapping[i]].GetType().ToString();
         }
 
-        public DateTime GetDateTime(int i)
+        public override DateTime GetDateTime(int i)
         {
             return (DateTime)m_Current[m_IndexToNameMapping[i]];
         }
 
-        public decimal GetDecimal(int i)
+        public override decimal GetDecimal(int i)
         {
             return (decimal)m_Current[m_IndexToNameMapping[i]];
         }
 
-        public double GetDouble(int i)
+        public override double GetDouble(int i)
         {
             return (double)m_Current[m_IndexToNameMapping[i]];
         }
 
-        public Type GetFieldType(int i)
+        public override Type GetFieldType(int i)
         {
             return m_Current[m_IndexToNameMapping[i]].GetType();
         }
 
-        public float GetFloat(int i)
+        public override float GetFloat(int i)
         {
             return (float)m_Current[m_IndexToNameMapping[i]];
         }
 
-        public Guid GetGuid(int i)
+        public override Guid GetGuid(int i)
         {
             return (Guid)m_Current[m_IndexToNameMapping[i]];
         }
 
-        public short GetInt16(int i)
+        public override short GetInt16(int i)
         {
             return (short)m_Current[m_IndexToNameMapping[i]];
         }
 
-        public int GetInt32(int i)
+        public override int GetInt32(int i)
         {
             return (int)m_Current[m_IndexToNameMapping[i]];
         }
 
-        public long GetInt64(int i)
+        public override long GetInt64(int i)
         {
             return (long)m_Current[m_IndexToNameMapping[i]];
         }
 
-        public string GetName(int i)
+        public override string GetName(int i)
         {
             return m_IndexToNameMapping[i];
         }
 
-        public int GetOrdinal(string name)
+        public override int GetOrdinal(string name)
         {
             return m_NameToIndexMapping[name];
         }
-
-        public DataTable GetSchemaTable()
+#if NET45
+        public override DataTable GetSchemaTable()
         {
             throw new NotImplementedException();
         }
+#endif
 
-        public string GetString(int i)
+        public override string GetString(int i)
         {
             return (string)m_Current[m_IndexToNameMapping[i]];
         }
 
-        public object GetValue(int i)
+        public override object GetValue(int i)
         {
             return this[i];
         }
 
-        public int GetValues(object[] values)
+        public override int GetValues(object[] values)
         {
             int count = 0;
             for (int i = 0; i < this.FieldCount && i < values.Length; i++)
@@ -222,18 +237,18 @@ namespace EnumerableToDataReader
             return count;
         }
 
-        public bool IsDBNull(int i)
+        public override bool IsDBNull(int i)
         {
             return m_Current[m_IndexToNameMapping[i]] == null
                 || m_Current[m_IndexToNameMapping[i]] is DBNull;
         }
 
-        public bool NextResult()
+        public override bool NextResult()
         {
             throw new NotImplementedException();
         }
 
-        public bool Read()
+        public override bool Read()
         {
             if (m_Iterator == null)
             {
@@ -250,6 +265,11 @@ namespace EnumerableToDataReader
                 }
             }
             return ret;
+        }
+
+        public override IEnumerator GetEnumerator()
+        {
+            return m_Iterator;
         }
     }
 }

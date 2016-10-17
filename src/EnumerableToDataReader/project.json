@@ -1,5 +1,19 @@
 ﻿{
   "version": "1.0.0-*",
+  "copyright": "Copyright(c) 2016 itn3000",
+  "packOptions": {
+    "releaseNotes": "",
+    "owners": [
+      "itn3000"
+    ],
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/itn3000/EnumerableToDataReader"
+    },
+    "requireLicenseAcceptance": false,
+    "summary": "converter for enumerable objects to datareader",
+    "licenseUrl": ""
+  },
 
   "dependencies": {
     "NETStandard.Library": "1.6.0"

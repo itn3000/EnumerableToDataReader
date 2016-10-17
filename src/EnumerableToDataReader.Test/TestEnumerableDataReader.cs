@@ -47,7 +47,7 @@ namespace EnumerableToDataReader.Test
              }).ToArray();
             var ti = typeof(SampleClass).GetTypeInfo();
             var properties = ti.GetProperties();
-            using (var reader = data.ToDataReader(typeof(SampleClass)))
+            using (var reader = data.AsDataReader(typeof(SampleClass)))
             {
                 int i = 0;
                 while (reader.Read())

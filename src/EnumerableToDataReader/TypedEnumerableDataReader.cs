@@ -9,8 +9,11 @@ using System.Collections.Concurrent;
 
 namespace EnumerableToDataReader
 {
-    class TypedEnumerableDataReader<T> : IDataReader
+    using System.Collections;
+    using System.Data.Common;
+    class TypedEnumerableDataReader<T> : DbDataReader
     {
+
         static readonly Lazy<TypedFunctionMap<T>> m_StaticFunctionMap = new Lazy<TypedFunctionMap<T>>();
         IEnumerable<T> m_DataList;
         IEnumerator<T> m_Current;
@@ -26,8 +29,12 @@ namespace EnumerableToDataReader
             m_DataList = dataList;
             m_Current = dataList.GetEnumerator();
         }
-
-        public object this[string name]
+        public new void Dispose()
+        {
+            Close();
+            base.Dispose();
+        }
+        public override object this[string name]
         {
             get
             {
@@ -35,7 +42,7 @@ namespace EnumerableToDataReader
             }
         }
 
-        public object this[int i]
+        public override object this[int i]
         {
             get
             {
@@ -43,15 +50,15 @@ namespace EnumerableToDataReader
             }
         }
 
-        public int Depth
+        public override int Depth
         {
             get
             {
-                throw new NotImplementedException();
+                return 0;
             }
         }
 
-        public int FieldCount
+        public override int FieldCount
         {
             get
             {
@@ -59,7 +66,7 @@ namespace EnumerableToDataReader
             }
         }
 
-        public bool IsClosed
+        public override bool IsClosed
         {
             get
             {
@@ -67,38 +74,33 @@ namespace EnumerableToDataReader
             }
         }
 
-        public int RecordsAffected
+        public override int RecordsAffected
         {
             get
             {
-                throw new NotImplementedException();
+                return 0;
             }
         }
 
-        public void Close()
+        public override bool HasRows
         {
-            m_Current = null;
-        }
-
-        public void Dispose()
-        {
-            if (m_Current != null)
+            get
             {
-                m_Current = null;
+                return m_Current != null || m_DataList.Any();
             }
         }
 
-        public bool GetBoolean(int i)
+        public override bool GetBoolean(int i)
         {
             return m_FunctionMap.BoolGetters[i](m_Current.Current);
         }
 
-        public byte GetByte(int i)
+        public override byte GetByte(int i)
         {
             return m_FunctionMap.ByteGetters[i](m_Current.Current);
         }
 
-        public long GetBytes(int i, long fieldOffset, byte[] buffer, int bufferoffset, int length)
+        public override long GetBytes(int i, long fieldOffset, byte[] buffer, int bufferoffset, int length)
         {
             var data = ((IEnumerable<byte>)m_FunctionMap.ObjectGetters[i](m_Current.Current)).Skip((int)fieldOffset).Take(length).ToArray();
             long readLength = 0;
@@ -110,12 +112,12 @@ namespace EnumerableToDataReader
             return readLength;
         }
 
-        public char GetChar(int i)
+        public override char GetChar(int i)
         {
             return m_FunctionMap.CharGetters[i](m_Current.Current);
         }
 
-        public long GetChars(int i, long fieldoffset, char[] buffer, int bufferoffset, int length)
+        public override long GetChars(int i, long fieldoffset, char[] buffer, int bufferoffset, int length)
         {
             var data = ((IEnumerable<char>)m_FunctionMap.ObjectGetters[i](m_Current.Current)).Skip((int)fieldoffset).Take(length).ToArray();
             var readlength = 0;
@@ -127,17 +129,12 @@ namespace EnumerableToDataReader
             return readlength;
         }
 
-        public IDataReader GetData(int i)
-        {
-            throw new NotImplementedException();
-        }
-
-        public string GetDataTypeName(int i)
+        public override string GetDataTypeName(int i)
         {
             return m_FunctionMap.MemberTypeMapping[m_FunctionMap.IndexNameMapping[i]].ToString();
         }
 
-        public DateTime GetDateTime(int i)
+        public override DateTime GetDateTime(int i)
         {
             if (m_FunctionMap.DateGetters.ContainsKey(i))
             {
@@ -149,7 +146,7 @@ namespace EnumerableToDataReader
             }
         }
 
-        public decimal GetDecimal(int i)
+        public override decimal GetDecimal(int i)
         {
             if (m_FunctionMap.DecimalGetters.ContainsKey(i))
             {
@@ -177,67 +174,62 @@ namespace EnumerableToDataReader
             }
         }
 
-        public double GetDouble(int i)
+        public override double GetDouble(int i)
         {
             throw new NotImplementedException();
         }
 
-        public Type GetFieldType(int i)
+        public override Type GetFieldType(int i)
         {
             return m_FunctionMap.MemberTypeMapping[m_FunctionMap.IndexNameMapping[i]];
         }
 
-        public float GetFloat(int i)
+        public override float GetFloat(int i)
         {
             return m_FunctionMap.FloatGetters[i](m_Current.Current);
         }
 
-        public Guid GetGuid(int i)
+        public override Guid GetGuid(int i)
         {
             return m_FunctionMap.GuidGetters[i](m_Current.Current);
         }
 
-        public short GetInt16(int i)
+        public override short GetInt16(int i)
         {
             return m_FunctionMap.ShortGetters[i](m_Current.Current);
         }
 
-        public int GetInt32(int i)
+        public override int GetInt32(int i)
         {
             return m_FunctionMap.IntGetters[i](m_Current.Current);
         }
 
-        public long GetInt64(int i)
+        public override long GetInt64(int i)
         {
             return m_FunctionMap.LongGetters[i](m_Current.Current);
         }
 
-        public string GetName(int i)
+        public override string GetName(int i)
         {
             return m_FunctionMap.IndexNameMapping[i];
         }
 
-        public int GetOrdinal(string name)
+        public override int GetOrdinal(string name)
         {
             return m_FunctionMap.NameIndexMapping[name];
         }
 
-        public DataTable GetSchemaTable()
-        {
-            throw new NotImplementedException();
-        }
-
-        public string GetString(int i)
+        public override string GetString(int i)
         {
             return m_FunctionMap.ObjectGetters[i](m_Current.Current).ToString();
         }
 
-        public object GetValue(int i)
+        public override object GetValue(int i)
         {
             return m_FunctionMap.ObjectGetters[i](m_Current.Current);
         }
 
-        public int GetValues(object[] values)
+        public override int GetValues(object[] values)
         {
             for (int i = 0; i < values.Length && i < m_FunctionMap.FieldNum; i++)
             {
@@ -246,19 +238,49 @@ namespace EnumerableToDataReader
             return values.Length < m_FunctionMap.FieldNum ? values.Length : m_FunctionMap.FieldNum;
         }
 
-        public bool IsDBNull(int i)
+        public override bool IsDBNull(int i)
         {
             return m_FunctionMap.ObjectGetters[i](m_Current.Current) == null;
         }
 
-        public bool NextResult()
+        public override bool NextResult()
+        {
+            return false;
+        }
+
+        public override bool Read()
+        {
+            if (!m_Current.MoveNext())
+            {
+                m_Current = null;
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        public override IEnumerator GetEnumerator()
+        {
+            return m_Current;
+        }
+#if NET45
+        public override DataTable GetSchemaTable()
         {
             throw new NotImplementedException();
         }
-
-        public bool Read()
+        public override void Close()
         {
-            return m_Current.MoveNext();
+            m_Current?.Dispose();
+            m_Current = null;
         }
+#else
+        public void Close()
+        {
+            m_Current?.Dispose();
+            m_Current = null;
+        }
+#endif
     }
 }
