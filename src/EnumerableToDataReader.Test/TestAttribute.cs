@@ -26,6 +26,18 @@ namespace EnumerableToDataReader.Test
                 {
                     Assert.Equal(2, dr.FieldCount);
                     Assert.Equal(cnt, dr.GetInt32(dr.GetOrdinal("a")));
+                    cnt++;
+                }
+            }
+        }
+        [Fact]
+        public void TestCustomName()
+        {
+            using (var dr = Enumerable.Range(0, 10).Select(i => new AttributeTestClass() { a = i, b = i.ToString(), c = i }).AsDataReader())
+            {
+                int cnt = 0;
+                while (dr.Read())
+                {
                     Assert.Equal((double)cnt, dr.GetDouble(dr.GetOrdinal("x")));
                     cnt++;
                 }
