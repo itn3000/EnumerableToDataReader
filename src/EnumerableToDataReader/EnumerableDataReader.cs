@@ -260,7 +260,15 @@ namespace EnumerableToDataReader
 
         public override bool IsDBNull(int i)
         {
-            return m_FunctionMap.ObjectGetters[i](m_Current.Current) == null;
+            var obj = m_FunctionMap.ObjectGetters[i](m_Current.Current);
+            if (obj == null || obj is DBNull)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         public override bool NextResult()

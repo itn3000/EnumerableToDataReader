@@ -176,7 +176,7 @@ namespace EnumerableToDataReader
 
         public override double GetDouble(int i)
         {
-            throw new NotImplementedException();
+            return m_FunctionMap.DoubleGetters[i](m_Current.Current);
         }
 
         public override Type GetFieldType(int i)
@@ -240,7 +240,15 @@ namespace EnumerableToDataReader
 
         public override bool IsDBNull(int i)
         {
-            return m_FunctionMap.ObjectGetters[i](m_Current.Current) == null;
+            var obj = m_FunctionMap.ObjectGetters[i](m_Current.Current);
+            if (obj == null || obj is DBNull)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         public override bool NextResult()
