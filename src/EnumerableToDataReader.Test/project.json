@@ -11,11 +11,18 @@
   },
 
   "frameworks": {
-    "net461": {
+    "netcoreapp1.0": {
       "dependencies": {
-        "System.Data.SqlClient": "4.1.0"
+        "System.Data.SqlClient": "4.1.0",
+        "Microsoft.NETCore.App": {
+          "type": "platform",
+          "version": "1.0.0"
+        }
       }
     }
+  },
+  "tools": {
+    "dotnet-test-xunit": "2.2.0-preview2-build1029"
   },
   "testRunner": "xunit"
 }
