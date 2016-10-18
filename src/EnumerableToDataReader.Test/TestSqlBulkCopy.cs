@@ -8,7 +8,6 @@ namespace EnumerableToDataReader.Test
     using System.Data;
     using System.Data.SqlClient;
     using Xunit;
-    using Microsoft.Data.Sqlite;
     using Xunit.Abstractions;
     public class TestSqlBulkCopy
     {

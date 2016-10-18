@@ -11,16 +11,10 @@
   },
 
   "frameworks": {
-    "netcoreapp1.0": {
+    "net461": {
       "dependencies": {
-        "Microsoft.NETCore.App": {
-          "type": "platform",
-          "version": "1.0.0"
-        },
-        "Microsoft.Data.SQLite": "1.0.0",
         "System.Data.SqlClient": "4.1.0"
-      },
-      "imports": "dnxcore50"
+      }
     }
   },
   "testRunner": "xunit"
