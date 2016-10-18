@@ -14,6 +14,7 @@ write ```using EnumerableToDataReader``` in your .cs,you can use the following e
 * `AsDataReader<T>(this IEnumerable<T> list)`
 * `AsDataReader(this IEnumerable list, Type t)`
 * `AsDataReaderFromDictionary(this IEnumerable<IDictionary<string,object>> list)`
+* `ToDictionary(this IEnumerable<IDictionary<string,object>> list)`
 
 # Samples
 
